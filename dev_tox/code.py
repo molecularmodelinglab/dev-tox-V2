@@ -19,6 +19,7 @@ def warn(*args, **kwargs):
     pass
 warnings.warn = warn
 
+
 MODEL_DICT = {
     'Overall Toxicity': ['DT_overall_model.joblib'],
     'First Trimester Toxicity': ['DT_first_trimester_model.joblib'],
@@ -26,7 +27,9 @@ MODEL_DICT = {
     'Third Trimester Toxicity': ['DT_third_trimester_model.joblib'],
 }
 
-# lol I'm just like screw code readability sorry
+# lol I'm just like screw code reada
+#
+# bility sorry
 MODEL_DICT_INVERT = {v: key for key, val in MODEL_DICT.items() for v in val}
 
 CLASSIFICATION_DICT = {
