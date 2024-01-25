@@ -23,7 +23,7 @@ warnings.warn = warn
 
 MODEL_DICT = {
     'Overall Toxicity': ['DT_overall_model.joblib'],
-    'First Trimester Toxicity': ['DT_first_trimester_model.joblib'],
+    'First Trimester Toxicity': 'DT_first_trimester_model.joblib',
     'Second Trimester Toxicity': ['DT_second_trimester_model.joblib'],
     'Third Trimester Toxicity': ['DT_third_trimester_model.joblib'],
 }
@@ -73,8 +73,8 @@ def run_prediction(model, smi, calculate_ad=True, threshold=0.5):
     """
     fp = np.zeros((2048, 1))
     # TODO sub in your FP function
-    #  _fp = AllChem.GetMorganFingerprintAsBitVect(Chem.MolFromSmiles(smi), radius=3, nBits=2048)
-    # DataStructs.ConvertToNumpyArray(_fp, fp)
+    _fp = AllChem.GetMorganFingerprintAsBitVect(Chem.MolFromSmiles(smi), radius=2, nBits=2048, useFeatures=False)
+    DataStructs.ConvertToNumpyArray(_fp, fp)
 
     pred_proba = model.predict_proba(fp.reshape(1, -1))[:, 1]
     pred = 1 if pred_proba > threshold else 0
@@ -117,6 +117,7 @@ def main(smi, calculate_ad=True, make_prop_img=False, **kwargs):
         if key in MODEL_DICT.keys():  # check if this kwarg is for a model
             if val:  # check if model is turned on
                 model = MODEL_DICT[key]
+                print(model)
                 joblib.load(model)  # load model
 
                 pred, pred_proba, ad = run_prediction(model, smi, calculate_ad=calculate_ad)
