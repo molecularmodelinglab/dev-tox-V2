@@ -5,9 +5,9 @@ from rdkit.Chem.Draw import SimilarityMaps
 from scipy.spatial.distance import cdist
 import numpy as np
 
-import glob
+"""import glob
 import gzip
-import bz2
+import bz2"""
 import os
 import _pickle as cPickle
 
@@ -15,15 +15,15 @@ import io
 import matplotlib.pyplot as plt
 
 # god hates me so in my version of python I cannot supress these damn user warning so I do this nuclear option instead
-import warnings
+"""import warnings
 def warn(*args, **kwargs):
     pass
-warnings.warn = warn
+warnings.warn = warn"""
 
 
 MODEL_DICT = {
     'Overall Toxicity': ['DT_overall_model.joblib'],
-    'First Trimester Toxicity': 'DT_first_trimester_model.joblib',
+    'First Trimester Toxicity': ['DT_first_trimester_model.joblib'],
     'Second Trimester Toxicity': ['DT_second_trimester_model.joblib'],
     'Third Trimester Toxicity': ['DT_third_trimester_model.joblib'],
 }
@@ -50,7 +50,7 @@ CLASSIFICATION_DICT = {
         0: "Non-toxic",
         1: "Toxic"
     },
-    },
+    }
 
 
 AD_DICT = {
