@@ -14,10 +14,10 @@ import io
 import matplotlib.pyplot as plt
 
 # god hates me so in my version of python I cannot supress these damn user warning so I do this nuclear option instead
-import warnings
+"""import warnings
 def warn(*args, **kwargs):
     pass
-warnings.warn = warn
+warnings.warn = warn"""
 
 MODEL_DICT = {
     'Overall Toxicity': ['DT_overall_model.joblib'],
