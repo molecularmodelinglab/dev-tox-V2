@@ -1,4 +1,4 @@
-# import joblib
+#
 from rdkit import Chem, DataStructs
 from rdkit.Chem import AllChem
 from rdkit.Chem.Draw import SimilarityMaps
@@ -21,12 +21,19 @@ def warn(*args, **kwargs):
 warnings.warn = warn"""
 
 
+import joblib  # Ensure this import is at the beginning of your script
+
+# ... [other imports and code] ...
+
+MODEL_DIR = r'c:\Users\ricar\Documents\GitHub\dev-tox\dev_tox\models'  # Directory where models are stored
+
 MODEL_DICT = {
-    'Overall Toxicity': ['DT_overall_toxicity_model_final.joblib'],
-    'First Trimester Toxicity': ['DT_first_trimester_model_final.joblib'],
-    'Second Trimester Toxicity': ['DT_second_trimester_model_final.joblib'],
-    'Third Trimester Toxicity': ['DT_third_trimester_model_final.joblib'],
+    'Overall Toxicity': [os.path.join(MODEL_DIR, 'DT_overall_toxicity_model_final.joblib')],
+    'First Trimester Toxicity': [os.path.join(MODEL_DIR, 'DT_first_trimester_model_final.joblib')],
+    'Second Trimester Toxicity': [os.path.join(MODEL_DIR, 'DT_second_trimester_model_final.joblib')],
+    'Third Trimester Toxicity': [os.path.join(MODEL_DIR, 'DT_third_trimester_model_final.joblib')],
 }
+
 
 # lol I'm just like screw code readability sorry
 MODEL_DICT_INVERT = {v: key for key, val in MODEL_DICT.items() for v in val}
@@ -107,16 +114,16 @@ def get_prob_map(model, smi):
     return imgdata.getvalue()
 
 
-def main(smi, calculate_ad=True, make_prop_img=False, **kwargs):
 
+def main(smi, calculate_ad=True, make_prop_img=False, **kwargs):
     values = {}
 
     for key, val in kwargs.items():
         if key in MODEL_DICT.keys():  # check if this kwarg is for a model
             if val:  # check if model is turned on
-                model_file = MODEL_DICT[key][0]  # Get the first (and presumably only) file in the list
-                print(model_file)
-                model = joblib.load(model_file)  # load model  # load model
+                model_file = MODEL_DICT[key][0]  # Get the model file path
+                print(f"Loading model from: {model_file}")
+                model = joblib.load(model_file)  # load the model
 
                 pred, pred_proba, ad = run_prediction(model, smi, calculate_ad=calculate_ad)
 
