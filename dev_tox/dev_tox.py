@@ -22,10 +22,10 @@ warnings.warn = warn"""
 
 
 MODEL_DICT = {
-    'Overall Toxicity': ['DT_overall_model.joblib'],
-    'First Trimester Toxicity': ['DT_first_trimester_model.joblib'],
-    'Second Trimester Toxicity': ['DT_second_trimester_model.joblib'],
-    'Third Trimester Toxicity': ['DT_third_trimester_model.joblib'],
+    'Overall Toxicity': ['DT_overall_toxicity_model_final.joblib'],
+    'First Trimester Toxicity': ['DT_first_trimester_model_final.joblib'],
+    'Second Trimester Toxicity': ['DT_second_trimester_model_final.joblib'],
+    'Third Trimester Toxicity': ['DT_third_trimester_model_final.joblib'],
 }
 
 # lol I'm just like screw code readability sorry
