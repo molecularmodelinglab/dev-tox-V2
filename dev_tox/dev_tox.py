@@ -20,12 +20,15 @@ def warn(*args, **kwargs):
     pass
 warnings.warn = warn"""
 
+# for setting confidence-based AD:
+AD_THRESH = 0.6
+
 
 import joblib  # Ensure this import is at the beginning of your script
 
 # ... [other imports and code] ...
 
-MODEL_DIR = r'c:\Users\ricar\Documents\GitHub\dev-tox\dev_tox\models'  # Directory where models are stored
+MODEL_DIR = os.path.join(os.path.dirname(__file__), "models")  # Directory where models are stored
 
 MODEL_DICT = {
     'Overall Toxicity': [os.path.join(MODEL_DIR, 'DT_overall_toxicity_model_final.joblib')],
@@ -84,6 +87,9 @@ def run_prediction(model, smi, calculate_ad=True, threshold=0.5):
     pred_proba = model.predict_proba(fp.reshape(1, -1))[:, 1]
     pred = 1 if pred_proba > threshold else 0
 
+    if pred == 0:
+        pred_proba = 1 - float(pred_proba)
+
     # used to get proba of the inactive class if deemed inactive
     # if pred == 0:
     #     pred_proba = 1-pred_proba
@@ -91,7 +97,7 @@ def run_prediction(model, smi, calculate_ad=True, threshold=0.5):
     # if calculate_ad:
     #     ad = model_data["D_cutoff"] > np.min(cdist(model_data['Descriptors'].to_numpy(), fp.reshape(1, -1)))
     #     return pred, pred_proba, ad
-    return pred, pred_proba, None
+    return pred, float(pred_proba), float(pred_proba)
 
 
 def get_prob_map(model, smi):
@@ -114,7 +120,6 @@ def get_prob_map(model, smi):
     return imgdata.getvalue()
 
 
-
 def main(smi, calculate_ad=True, make_prop_img=False, **kwargs):
     values = {}
 
@@ -131,7 +136,7 @@ def main(smi, calculate_ad=True, make_prop_img=False, **kwargs):
                 if make_prop_img:
                     contrib_svg_str = get_prob_map(model, smi)
 
-                values[key] = [pred, pred_proba, ad, contrib_svg_str]
+                values[key] = [pred, float(pred_proba), AD_DICT[ad > AD_THRESH], contrib_svg_str]
 
     processed_results = []
     for key, val in values.items():

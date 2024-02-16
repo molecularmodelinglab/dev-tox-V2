@@ -38,8 +38,9 @@
             <h1 class="display-4" id="title" style="vertical-align: middle; line-height: 100px;">PregPred: Predicting Developmental Toxicity Potential</h1>
         </div>
         <div style="position: relative">
-            <p>This is an online web portal to predict developmental toxicity, described in PAPER LINK. To use, enter SMILE in the box below, or draw a compound and hit load SMILES, then click "Get Properties". Results will appear below. By default all models for all endpoints will be run. You can choose to turn off certain endpoints in the options sidebar. Fragment contribution maps are generated with RDKit. To turn on the maps, check the "Display contribution maps" in the options sidebar. It defaults to off because the maps will increase the runtime significantly, so if using please be patient</p>
-            <p>Please cite [PAPER REF GOES HERE]. Models and code for this webserver can be found <a href="https://github.com/jimmyjbling/dev-tox">here</a>.</p>
+            <p>This is an online web portal to predict developmental toxicity, described in PAPER LINK. To use, enter SMILE in the box below, or draw a compound and hit load SMILES, then click "Get Properties". Results will appear below. By default all models for all endpoints will be run. You can choose to turn off certain endpoints in the options sidebar. Fragment contribution maps are generated with RDKit. To turn on the maps, check the "Display contribution maps" in the options sidebar. It defaults to off because the maps will increase the runtime significantly, so if using please be patient. More informatin about this maps can be found <a href="https://greglandrum.github.io/rdkit-blog/posts/2020-01-03-similarity-maps-with-new-drawing-code.html">here</a>.</p>
+            <p>For the applicability domain calculation (AD), an ensemble confidence approach is used such that if the average prediction confidence of the ensemble of models is above 0.6, the prediction is considered "inside" the AD</p>
+            <p>Please cite [PAPER REF GOES HERE]. Models and code for this webserver can be found <a href="https://github.com/molecularmodelinglab/dev-tox">here</a>.</p>
         </div>
             <div id="forms-wrapper">
             <div class="search-wrapper">
