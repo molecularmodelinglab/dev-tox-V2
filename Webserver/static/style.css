@@ -171,13 +171,19 @@ body {
 @media only screen and (max-width: 900px) {
     #forms-wrapper {
         grid-template-areas:
-            "ssearch ssearch"
+            "search search"
             "options options"
             "msearch msearch"
             "molecule molecule"
     }
+
+    .options-sidebar, .options-wrapper .options-icons {
+        display: block; /* Ensure that the options are always displayed */
+    }
+
     #search-options {
-        max-height: 0;
+        max-height: none;
+        overflow: visible;
     }
   }
 
