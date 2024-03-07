@@ -4,6 +4,7 @@ from rdkit.Chem import AllChem
 from rdkit.Chem.Draw import SimilarityMaps
 from scipy.spatial.distance import cdist
 import numpy as np
+from scipy.spatial.distance import pdist, cdist
 
 """import glob
 import gzip
@@ -38,6 +39,15 @@ MODEL_DICT = {
 }
 
 
+# TODO CHECK THIS
+AD_DICT = {
+    'Overall Toxicity': [joblib.load(os.path.join(MODEL_DIR, 'DT_overall_toxicity_model_final.pkl'))],
+    'First Trimester Toxicity': [joblib.load(os.path.join(MODEL_DIR, 'DT_first_trimester_model_final.pkl'))],
+    'Second Trimester Toxicity': [joblib.load(os.path.join(MODEL_DIR, 'DT_second_trimester_model_final.pkl'))],
+    'Third Trimester Toxicity': [joblib.load(os.path.join(MODEL_DIR, 'DT_third_trimester_model_final.pkl'))],
+}
+
+
 # lol I'm just like screw code readability sorry
 MODEL_DICT_INVERT = {v: key for key, val in MODEL_DICT.items() for v in val}
 
@@ -67,7 +77,28 @@ AD_DICT = {
 }
 
 
-def run_prediction(model, smi, calculate_ad=True, threshold=0.5):
+def _get_AD_thresh(training_smiles, file_name):
+    fps = np.array([list(AllChem.GetMorganFingerprintAsBitVect(Chem.MolFromSmiles(smi), radius=2, nBits=2048, useFeatures=False))
+                    for smi in training_smiles])
+
+    dists = pdist(fps)
+    mean_1 = dists.mean()
+    dists_2 = dists[np.where(dists < mean_1)]
+    mean_2 = dists_2.mean()
+    std_2 = dists_2.std()
+
+    threshold = mean_2 + (0.5 * std_2)
+
+    import pickle
+    pickle.dump((threshold, fps),  open(file_name, "wb"))
+
+
+def calc_ad(query_fp, ad_tuple):
+    dist = cdist(query_fp, ad_tuple[1], "euclidean")
+    return dist < ad_tuple[0]
+
+
+def run_prediction(model, smi, calculate_ad=True, ad_tup=None, threshold=0.5):
     """_summary_
 
     Args:
@@ -94,10 +125,11 @@ def run_prediction(model, smi, calculate_ad=True, threshold=0.5):
     # if pred == 0:
     #     pred_proba = 1-pred_proba
 
-    # if calculate_ad:
-    #     ad = model_data["D_cutoff"] > np.min(cdist(model_data['Descriptors'].to_numpy(), fp.reshape(1, -1)))
-    #     return pred, pred_proba, ad
-    return pred, float(pred_proba), float(pred_proba)
+    if calculate_ad:
+        ad = calc_ad(fp, ad_tup)
+        return pred, pred_proba, ad
+
+    return pred, float(pred_proba), ""
 
 
 def get_prob_map(model, smi):
@@ -127,10 +159,11 @@ def main(smi, calculate_ad=True, make_prop_img=False, **kwargs):
         if key in MODEL_DICT.keys():  # check if this kwarg is for a model
             if val:  # check if model is turned on
                 model = MODEL_DICT[key][0]  # Get the model file path
+                ad_tup = AD_DICT[key][0]
                 # print(f"Loading model from: {model_file}")
                 # model = joblib.load(model_file)  # load the model
 
-                pred, pred_proba, ad = run_prediction(model, smi, calculate_ad=calculate_ad)
+                pred, pred_proba, ad = run_prediction(model, smi, calculate_ad=calculate_ad, ad_tup=ad_tup)
 
                 contrib_svg_str = ""
                 if make_prop_img:
