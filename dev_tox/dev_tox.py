@@ -39,12 +39,12 @@ MODEL_DICT = {
 }
 
 
-# TODO CHECK THIS
+# CHECK THIS
 AD_DICT = {
-    'Overall Toxicity': [joblib.load(os.path.join(MODEL_DIR, 'DT_overall_toxicity_model_final.pkl'))],
-    'First Trimester Toxicity': [joblib.load(os.path.join(MODEL_DIR, 'DT_first_trimester_model_final.pkl'))],
-    'Second Trimester Toxicity': [joblib.load(os.path.join(MODEL_DIR, 'DT_second_trimester_model_final.pkl'))],
-    'Third Trimester Toxicity': [joblib.load(os.path.join(MODEL_DIR, 'DT_third_trimester_model_final.pkl'))],
+    'Overall Toxicity': [joblib.load(os.path.join(MODEL_DIR, 'overall_toxicity_AD.pkl'))],
+    'First Trimester Toxicity': [joblib.load(os.path.join(MODEL_DIR, 'first_tri_toxicity_AD.pkl'))],
+    'Second Trimester Toxicity': [joblib.load(os.path.join(MODEL_DIR, 'second_tri_toxicity_AD.pkl'))],
+    'Third Trimester Toxicity': [joblib.load(os.path.join(MODEL_DIR, 'third_tri_toxicity_AD.pkl'))],
 }
 
 
