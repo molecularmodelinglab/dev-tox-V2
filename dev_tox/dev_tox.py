@@ -111,7 +111,7 @@ def run_prediction(model, smi, calculate_ad=True, ad_tup=None, threshold=0.5):
         _type_: _description_
     """
     fp = np.zeros((2048, 1))
-    # TODO sub in your FP function
+    # sub in your FP function
     _fp = AllChem.GetMorganFingerprintAsBitVect(Chem.MolFromSmiles(smi), radius=2, nBits=2048, useFeatures=False)
     DataStructs.ConvertToNumpyArray(_fp, fp)
 
