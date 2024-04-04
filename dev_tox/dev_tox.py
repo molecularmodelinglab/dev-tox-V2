@@ -71,7 +71,7 @@ CLASSIFICATION_DICT = {
     }
 
 
-AD_DICT = {
+AD_DICT_BOOL = {
     True: "Inside",
     False: "Outside"
 }
@@ -169,7 +169,7 @@ def main(smi, calculate_ad=True, make_prop_img=False, **kwargs):
                 if make_prop_img:
                     contrib_svg_str = get_prob_map(model, smi)
 
-                values[key] = [pred, float(pred_proba), AD_DICT[ad > AD_THRESH], contrib_svg_str]
+                values[key] = [pred, float(pred_proba), AD_DICT_BOOL[ad > AD_THRESH], contrib_svg_str]
 
     processed_results = []
     for key, val in values.items():
