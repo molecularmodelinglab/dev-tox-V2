@@ -94,8 +94,8 @@ def _get_AD_thresh(training_smiles, file_name):
 
 
 def calc_ad(query_fp, ad_tuple):
-    dist = cdist(query_fp, ad_tuple[1], "euclidean")
-    return dist < ad_tuple[0]
+    dist = cdist(query_fp.reshape(1, -1), ad_tuple[1], "euclidean")
+    return (dist < ad_tuple[0]).any()
 
 
 def run_prediction(model, smi, calculate_ad=True, ad_tup=None, threshold=0.5):
@@ -169,7 +169,7 @@ def main(smi, calculate_ad=True, make_prop_img=False, **kwargs):
                 if make_prop_img:
                     contrib_svg_str = get_prob_map(model, smi)
 
-                values[key] = [pred, float(pred_proba), AD_DICT_BOOL[ad > AD_THRESH], contrib_svg_str]
+                values[key] = [pred, float(pred_proba), AD_DICT_BOOL[ad], contrib_svg_str]
 
     processed_results = []
     for key, val in values.items():
