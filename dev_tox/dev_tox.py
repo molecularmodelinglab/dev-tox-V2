@@ -15,19 +15,12 @@ import os
 import io
 import matplotlib.pyplot as plt
 
-# god hates me so in my version of python I cannot supress these damn user warning so I do this nuclear option instead
-"""import warnings
-def warn(*args, **kwargs):
-    pass
-warnings.warn = warn"""
 
 # for setting confidence-based AD:
 AD_THRESH = 0.6
 
 
 import joblib  # Ensure this import is at the beginning of your script
-
-# ... [other imports and code] ...
 
 MODEL_DIR = os.path.join(os.path.dirname(__file__), "models")  # Directory where models are stored
 
