@@ -25,10 +25,10 @@ import joblib  # Ensure this import is at the beginning of your script
 MODEL_DIR = os.path.join(os.path.dirname(__file__), "models")  # Directory where models are stored
 
 MODEL_DICT = {
-    'Overall Toxicity': [joblib.load(os.path.join(MODEL_DIR, 'DT_overall_toxicity_model_final.joblib'))],
-    'First Trimester Toxicity': [joblib.load(os.path.join(MODEL_DIR, 'DT_first_trimester_model_final.joblib'))],
-    'Second Trimester Toxicity': [joblib.load(os.path.join(MODEL_DIR, 'DT_second_trimester_model_final.joblib'))],
-    'Third Trimester Toxicity': [joblib.load(os.path.join(MODEL_DIR, 'DT_third_trimester_model_final.joblib'))],
+    'Overall Toxicity': [joblib.load(os.path.join(MODEL_DIR, 'ECFP4_overall_tox_svm.joblib'))],
+    'First Trimester Toxicity': [joblib.load(os.path.join(MODEL_DIR, 'ECFP4_first_trimester_svm.joblib'))],
+    'Second Trimester Toxicity': [joblib.load(os.path.join(MODEL_DIR, 'ECFP4_second_trimester_svm.joblib'))],
+    'Third Trimester Toxicity': [joblib.load(os.path.join(MODEL_DIR, 'ECFP4_third_trimester_svm.joblib'))],
 }
 
 
@@ -125,14 +125,36 @@ def run_prediction(model, smi, calculate_ad=True, ad_tup=None, threshold=0.5):
     return pred, float(pred_proba), ""
 
 
-def get_prob_map(model, smi):
+def get_prob_map(model, smi, selected_features_file):
+    """Generates a probability map for a given molecule.
+
+    Args:
+        model: The trained model.
+        smi: The SMILES string for the molecule.
+        selected_features_file (str): Path to the selected features file.
+
+    Returns:
+        SVG string representing the probability map.
+    """
+    # Load the selected features indices from the correct file
+    selected_features = np.load(selected_features_file)
+
     def get_fp(mol, idx):
+        """Generates the fingerprint for the molecule at a specific atom index."""
         fps = np.zeros((2048, 1))
         _fps = SimilarityMaps.GetMorganFingerprint(mol, idx, radius=3, nBits=2048)
         DataStructs.ConvertToNumpyArray(_fps, fps)
-        return fps
+
+        # Ensure fps is reshaped to one-dimensional
+        fps = fps.flatten()
+
+        # Select only the features that were used during model training
+        fps_selected = fps[selected_features]
+
+        return fps_selected
 
     def get_proba(fps):
+        """Gets the probability prediction for a specific fingerprint."""
         return float(model.predict_proba(fps.reshape(1, -1))[:, 1])
 
     mol = Chem.MolFromSmiles(smi)
@@ -140,7 +162,6 @@ def get_prob_map(model, smi):
     imgdata = io.StringIO()
     fig.savefig(imgdata, format='svg')
     imgdata.seek(0)  # rewind the data
-    plt.savefig(imgdata, format="svg", bbox_inches="tight")
 
     return imgdata.getvalue()
 
@@ -151,24 +172,42 @@ def main(smi, calculate_ad=True, make_prop_img=False, **kwargs):
     for key, val in kwargs.items():
         if key in MODEL_DICT.keys():  # check if this kwarg is for a model
             if val:  # check if model is turned on
-                model = MODEL_DICT[key][0]  # Get the model file path
-                ad_tup = AD_DICT[key][0]
-                # print(f"Loading model from: {model_file}")
-                # model = joblib.load(model_file)  # load the model
+                model_file = MODEL_DICT[key][0]  # Get the model file path
+                print(f"Loading model from: {model_file}")
+                
+                # Load model and threshold from the joblib file
+                model_data = joblib.load(model_file)
+                model = model_data['model']  # Extract model
+                threshold = model_data.get('threshold', 0.5)  # Extract threshold or default to 0.5
+                
+                # Determine the correct selected features file based on the model type
+                if key == 'Overall Toxicity':
+                    selected_features_file = os.path.join(MODEL_DIR, 'selected_features_overall_tox_ecfp4.npy')
+                elif key == 'First Trimester Toxicity':
+                    selected_features_file = os.path.join(MODEL_DIR, 'selected_features_first_tri_ecfp4.npy')
+                elif key == 'Second Trimester Toxicity':
+                    selected_features_file = os.path.join(MODEL_DIR, 'selected_features_second_tri_ecfp4.npy')
+                elif key == 'Third Trimester Toxicity':
+                    selected_features_file = os.path.join(MODEL_DIR, 'selected_features_third_tri_ecfp4.npy')
+                else:
+                    raise ValueError(f"Unknown model type: {key}")
 
-                pred, pred_proba, ad = run_prediction(model, smi, calculate_ad=calculate_ad, ad_tup=ad_tup)
+                # Run the prediction with the correct selected features file
+                pred, pred_proba, ad = run_prediction(model, smi, selected_features_file, calculate_ad=calculate_ad, threshold=threshold)
 
                 contrib_svg_str = ""
                 if make_prop_img:
-                    contrib_svg_str = get_prob_map(model, smi)
+                    # Correctly pass the third argument to get_prob_map
+                    contrib_svg_str = get_prob_map(model, smi, selected_features_file)
 
-                values[key] = [pred, float(pred_proba), AD_DICT_BOOL[ad], contrib_svg_str]
-
+                values[key] = [pred, pred_proba, ad, contrib_svg_str]
+        
     processed_results = []
     for key, val in values.items():
         processed_results.append([key, CLASSIFICATION_DICT[key][val[0]], val[1], val[2], val[3]])
 
     return processed_results
+
 
 
 # def write_csv_file(smiles_list, calculate_ad=False):
