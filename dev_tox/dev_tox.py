@@ -168,6 +168,7 @@ def get_prob_map(model, smi, selected_features_file):
 
 def main(smi, calculate_ad=True, make_prop_img=False, **kwargs):
     values = {}
+    trimester_toxic = False  # Flag to check if any trimester toxicity is predicted as toxic
 
     for key, val in kwargs.items():
         if key in MODEL_DICT.keys():  # check if this kwarg is for a model
@@ -195,18 +196,34 @@ def main(smi, calculate_ad=True, make_prop_img=False, **kwargs):
                 # Run the prediction with the correct selected features file
                 pred, pred_proba, ad = run_prediction(model, smi, selected_features_file, calculate_ad=calculate_ad, threshold=threshold)
 
+                # Generate probability map if needed
                 contrib_svg_str = ""
                 if make_prop_img:
-                    # Correctly pass the third argument to get_prob_map
                     contrib_svg_str = get_prob_map(model, smi, selected_features_file)
 
                 values[key] = [pred, pred_proba, ad, contrib_svg_str]
-        
+
+                # Check if any trimester prediction is "Toxic"
+                if key in ['First Trimester Toxicity', 'Second Trimester Toxicity', 'Third Trimester Toxicity'] and pred == 1:
+                    trimester_toxic = True
+
+    # Adjust "Overall Toxicity" prediction if any trimester is toxic
+    if trimester_toxic:
+        # If overall toxicity has been predicted, update it to "Toxic"
+        if 'Overall Toxicity' in values:
+            values['Overall Toxicity'][0] = 1  # Set prediction to "Toxic"
+            values['Overall Toxicity'][1] = max(values['Overall Toxicity'][1], 0.5)  # Adjust probability if needed
+        else:
+            # If "Overall Toxicity" wasn't predicted earlier, create an entry for it as "Toxic"
+            values['Overall Toxicity'] = [1, 1.0, None, ""]  # Assuming full certainty if trimester is toxic
+
+    # Prepare results for output
     processed_results = []
     for key, val in values.items():
         processed_results.append([key, CLASSIFICATION_DICT[key][val[0]], val[1], val[2], val[3]])
 
     return processed_results
+
 
 
 
