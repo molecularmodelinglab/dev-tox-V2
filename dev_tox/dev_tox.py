@@ -41,8 +41,8 @@ AD_DICT = {
 }
 
 
-# lol I'm just like screw code readability sorry
-MODEL_DICT_INVERT = {v: key for key, val in MODEL_DICT.items() for v in val}
+# # lol I'm just like screw code readability sorry
+# MODEL_DICT_INVERT = {v["model"]: key for key, val in MODEL_DICT.items() for v in val}
 
 CLASSIFICATION_DICT = {
     'Overall Toxicity': {
@@ -86,12 +86,12 @@ def _get_AD_thresh(training_smiles, file_name):
     pickle.dump((threshold, fps),  open(file_name, "wb"))
 
 
-def calc_ad(query_fp, ad_tuple):
-    dist = cdist(query_fp.reshape(1, -1), ad_tuple[1], "euclidean")
-    return (dist < ad_tuple[0]).any()
+def calc_ad(query_fp, ad_tuple, selected_features):
+    dist = cdist(query_fp.reshape(1, -1), ad_tuple[1][:, selected_features], "euclidean")
+    return "TRUE" if bool((dist < ad_tuple[0]).any()) else "FALSE"
 
 
-def run_prediction(model, smi, calculate_ad=True, ad_tup=None, threshold=0.5):
+def run_prediction(model, smi, selected_features, calculate_ad=True, ad_tup=None, threshold=0.5):
     """_summary_
 
     Args:
@@ -107,6 +107,7 @@ def run_prediction(model, smi, calculate_ad=True, ad_tup=None, threshold=0.5):
     # sub in your FP function
     _fp = AllChem.GetMorganFingerprintAsBitVect(Chem.MolFromSmiles(smi), radius=2, nBits=2048, useFeatures=False)
     DataStructs.ConvertToNumpyArray(_fp, fp)
+    fp = fp[selected_features]
 
     pred_proba = model.predict_proba(fp.reshape(1, -1))[:, 1]
     pred = 1 if pred_proba > threshold else 0
@@ -119,7 +120,7 @@ def run_prediction(model, smi, calculate_ad=True, ad_tup=None, threshold=0.5):
     #     pred_proba = 1-pred_proba
 
     if calculate_ad:
-        ad = calc_ad(fp, ad_tup)
+        ad = calc_ad(fp, ad_tup, selected_features)
         return pred, pred_proba, ad
 
     return pred, float(pred_proba), ""
@@ -173,11 +174,11 @@ def main(smi, calculate_ad=True, make_prop_img=False, **kwargs):
     for key, val in kwargs.items():
         if key in MODEL_DICT.keys():  # check if this kwarg is for a model
             if val:  # check if model is turned on
-                model_file = MODEL_DICT[key][0]  # Get the model file path
-                print(f"Loading model from: {model_file}")
+                model_data = MODEL_DICT[key][0]
+                # print(f"Loading model from: {model_file}")
                 
                 # Load model and threshold from the joblib file
-                model_data = joblib.load(model_file)
+                # model_data = joblib.load(model_file)
                 model = model_data['model']  # Extract model
                 threshold = model_data.get('threshold', 0.5)  # Extract threshold or default to 0.5
                 
@@ -192,16 +193,17 @@ def main(smi, calculate_ad=True, make_prop_img=False, **kwargs):
                     selected_features_file = os.path.join(MODEL_DIR, 'selected_features_third_tri_ecfp4.npy')
                 else:
                     raise ValueError(f"Unknown model type: {key}")
+                selected_features = np.load(selected_features_file)
 
                 # Run the prediction with the correct selected features file
-                pred, pred_proba, ad = run_prediction(model, smi, selected_features_file, calculate_ad=calculate_ad, threshold=threshold)
+                pred, pred_proba, ad = run_prediction(model, smi, selected_features, calculate_ad=calculate_ad, ad_tup=AD_DICT[key][0], threshold=threshold)
 
                 # Generate probability map if needed
                 contrib_svg_str = ""
                 if make_prop_img:
                     contrib_svg_str = get_prob_map(model, smi, selected_features_file)
 
-                values[key] = [pred, pred_proba, ad, contrib_svg_str]
+                values[key] = [pred, float(pred_proba), ad, contrib_svg_str]
 
                 # Check if any trimester prediction is "Toxic"
                 if key in ['First Trimester Toxicity', 'Second Trimester Toxicity', 'Third Trimester Toxicity'] and pred == 1:
