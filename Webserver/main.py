@@ -1,10 +1,10 @@
 from flask import Flask, render_template, request, abort, Response, jsonify
 
 import sys
-sys.path.append('/home/jwellni_unc_edu/dev-tox')
+sys.path.append('/home/jwellni_unc_edu/dev-tox-V2')
 from dev_tox.dev_tox import MODEL_DICT
 
-sys.path.append('/home/jwellni_unc_edu/dev-tox/Webserver')
+sys.path.append('/home/jwellni_unc_edu/dev-tox-V2/Webserver')
 from smiles import get_molecule_data_from_smiles
 from csv_smiles import get_csv_from_smiles
 
