@@ -33,7 +33,7 @@ def get_csv_from_smiles(smiles_list, options):
 
         for model_name, pred, pred_proba, ad, _ in data:
             try:
-                pred_proba = float(pred_proba[:-1]) / 100  # covert back to 0-1 float
+                pred_proba = float(pred_proba) / 100  # covert back to 0-1 float
                 row[model_name] = pred_proba if pred == 1 else 1 - pred_proba  # this is to make sure its proba for class 1
             except ValueError:
                 row[model_name] = "No prediction"  # if pred_proba is string skip

@@ -30,7 +30,7 @@ export function displayMoleculeCard(moleculeData) {
     moleculeSMILES.innerHTML = moleculeData.SMILES;
     moleculeSVG.innerHTML = moleculeData.svg;
 
-    for (const [modelName, classification, confidence, ad, prob_svg, color, prob_meaning] of moleculeData.pred_data) {
+    for (const [modelName, classification, confidence, threshold, ad, prob_svg, color, prob_meaning] of moleculeData.pred_data) {
 
         let wrapper = document.createElement('div');
         wrapper.className = 'option-item custom-control custom-checkbox mb-3';
@@ -40,9 +40,9 @@ export function displayMoleculeCard(moleculeData) {
         information.classList.add('model-preds');
 
         if (ad === "") {
-            information.innerHTML = `<h2 style="font-weight: bold">${modelName}</h2> <p style="color:${color};">${classification}</p><p>Confidence: ${confidence}</p>`;
+            information.innerHTML = `<h2 style="font-weight: bold">${modelName}</h2> <p style="color:${color};">${classification}</p><p>Probability Compound is Toxic: ${confidence}</p><p>Probability threshold for toxicity ${threshold}</p>`;
         } else {
-            information.innerHTML = `<h2 style="font-weight: bold">${modelName}</h2> <p style="color:${color};">${classification}</p><p>Confidence: ${confidence}</p><p>Applicability Domain: ${ad}</p>`;
+            information.innerHTML = `<h2 style="font-weight: bold">${modelName}</h2> <p style="color:${color};">${classification}</p><p>Probability Compound is Toxic: ${confidence}</p><p>Probability threshold for toxicity ${threshold}</p><p>Applicability Domain: ${ad}</p>`;
         }
 
         if (prob_svg !== "") {

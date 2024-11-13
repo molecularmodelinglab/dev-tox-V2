@@ -112,8 +112,8 @@ def run_prediction(model, smi, selected_features, calculate_ad=True, ad_tup=None
     pred_proba = model.predict_proba(fp.reshape(1, -1))[:, 1]
     pred = 1 if pred_proba > threshold else 0
 
-    if pred == 0:
-        pred_proba = 1 - float(pred_proba)
+    # if pred == 0:
+    #     pred_proba = 1 - float(pred_proba)
 
     # used to get proba of the inactive class if deemed inactive
     # if pred == 0:
@@ -169,7 +169,7 @@ def get_prob_map(model, smi, selected_features_file):
 
 def main(smi, calculate_ad=True, make_prop_img=False, **kwargs):
     values = {}
-    trimester_toxic = False  # Flag to check if any trimester toxicity is predicted as toxic
+    trimester_toxic = -1  # Flag to check if any trimester toxicity is predicted as toxic
 
     for key, val in kwargs.items():
         if key in MODEL_DICT.keys():  # check if this kwarg is for a model
@@ -195,6 +195,7 @@ def main(smi, calculate_ad=True, make_prop_img=False, **kwargs):
                     raise ValueError(f"Unknown model type: {key}")
                 selected_features = np.load(selected_features_file)
 
+                print(threshold)
                 # Run the prediction with the correct selected features file
                 pred, pred_proba, ad = run_prediction(model, smi, selected_features, calculate_ad=calculate_ad, ad_tup=AD_DICT[key][0], threshold=threshold)
 
@@ -203,26 +204,31 @@ def main(smi, calculate_ad=True, make_prop_img=False, **kwargs):
                 if make_prop_img:
                     contrib_svg_str = get_prob_map(model, smi, selected_features_file)
 
-                values[key] = [pred, float(pred_proba), ad, contrib_svg_str]
+                pred_proba = round(float(pred_proba), 3)
+
+                values[key] = [pred, float(pred_proba), round(threshold, 3), ad, contrib_svg_str]
 
                 # Check if any trimester prediction is "Toxic"
                 if key in ['First Trimester Toxicity', 'Second Trimester Toxicity', 'Third Trimester Toxicity'] and pred == 1:
-                    trimester_toxic = True
+                    if float(pred_proba) > trimester_toxic:
+                        trimester_toxic = float(pred_proba)
+                        trimester_thresh = threshold
 
     # Adjust "Overall Toxicity" prediction if any trimester is toxic
-    if trimester_toxic:
+    if trimester_toxic != -1:
         # If overall toxicity has been predicted, update it to "Toxic"
         if 'Overall Toxicity' in values:
             values['Overall Toxicity'][0] = 1  # Set prediction to "Toxic"
-            values['Overall Toxicity'][1] = max(values['Overall Toxicity'][1], 0.5)  # Adjust probability if needed
+            values['Overall Toxicity'][1] = trimester_toxic  # Adjust probability if needed
+            values['Overall Toxicity'][2] = round(trimester_thresh, 3)  # Adjust probability if needed
         else:
             # If "Overall Toxicity" wasn't predicted earlier, create an entry for it as "Toxic"
-            values['Overall Toxicity'] = [1, 1.0, None, ""]  # Assuming full certainty if trimester is toxic
+            values['Overall Toxicity'] = [1, trimester_toxic, trimester_thresh, None, ""]  # Assuming full certainty if trimester is toxic
 
     # Prepare results for output
     processed_results = []
     for key, val in values.items():
-        processed_results.append([key, CLASSIFICATION_DICT[key][val[0]], val[1], val[2], val[3]])
+        processed_results.append([key, CLASSIFICATION_DICT[key][val[0]], val[1], val[2], val[3], val[4]])
 
     return processed_results
 
