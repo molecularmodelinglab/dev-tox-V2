@@ -50,7 +50,7 @@ export function displayMoleculeCard(moleculeData) {
             prob_meaning_text.innerHTML = `${prob_meaning}`
             information.append(prob_meaning_text)
             let prob_svg_element = document.createElement('div');
-            prob_svg_element.innerHTML = `<div>${prob_svg}</div>`
+            prob_svg_element.innerHTML = `<div><img src="data:image/png;base64,${prob_svg}" alt="OOPs"></div>`
             information.append(prob_svg_element)
         }
 

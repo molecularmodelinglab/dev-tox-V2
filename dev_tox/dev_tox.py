@@ -1,6 +1,8 @@
 #
+import base64
+
 from rdkit import Chem, DataStructs
-from rdkit.Chem import AllChem
+from rdkit.Chem import AllChem, Draw
 from rdkit.Chem.Draw import SimilarityMaps
 from scipy.spatial.distance import cdist
 import numpy as np
@@ -159,12 +161,10 @@ def get_prob_map(model, smi, selected_features_file):
         return float(model.predict_proba(fps.reshape(1, -1))[:, 1])
 
     mol = Chem.MolFromSmiles(smi)
-    fig, _ = SimilarityMaps.GetSimilarityMapForModel(mol, get_fp, get_proba)
-    imgdata = io.StringIO()
-    fig.savefig(imgdata, format='svg')
-    imgdata.seek(0)  # rewind the data
-
-    return imgdata.getvalue()
+    d2d = Draw.MolDraw2DCairo(500, 500)
+    SimilarityMaps.GetSimilarityMapForModel(mol, get_fp, get_proba, draw2d=d2d)
+    fig = base64.b64encode(d2d.GetDrawingText()).decode("ascii")
+    return fig
 
 
 def main(smi, calculate_ad=True, make_prop_img=False, **kwargs):
@@ -200,13 +200,13 @@ def main(smi, calculate_ad=True, make_prop_img=False, **kwargs):
                 pred, pred_proba, ad = run_prediction(model, smi, selected_features, calculate_ad=calculate_ad, ad_tup=AD_DICT[key][0], threshold=threshold)
 
                 # Generate probability map if needed
-                contrib_svg_str = ""
+                contrib_base64_bytes = ""
                 if make_prop_img:
-                    contrib_svg_str = get_prob_map(model, smi, selected_features_file)
+                    contrib_base64_bytes = get_prob_map(model, smi, selected_features_file)
 
                 pred_proba = round(float(pred_proba), 3)
 
-                values[key] = [pred, float(pred_proba), round(threshold, 3), ad, contrib_svg_str]
+                values[key] = [pred, float(pred_proba), round(threshold, 3), ad, contrib_base64_bytes]
 
                 # Check if any trimester prediction is "Toxic"
                 if key in ['First Trimester Toxicity', 'Second Trimester Toxicity', 'Third Trimester Toxicity'] and pred == 1:
