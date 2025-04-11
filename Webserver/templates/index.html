@@ -64,7 +64,7 @@
                                 <input class="form-control" type="text" id="smiles-input" placeholder="Enter SMILES" value="OCCc1c(C)[n+](cs1)Cc2cnc(C)nc2N" style="font-weight:bold; font-size: 24px">
                             </div>
                             <button class="btn btn-default" title="Get properties of molecule from SMILES string." type="submit">
-                                Get Properties
+                                PREDICT A SINGLE MOLECULE
                             </button>
                         </form>
                     </div>
@@ -72,13 +72,13 @@
                 <hr class="style1">
                 <div class="multi-search-wrapper">
                     <form id="multi-smiles-form" class="smiles-form">
-                        <p>You can also generate a CSV of the results by entering the compounds below, separated by commas or new lines. fragment contribution maps will not be generated for CSV. Large numbers of SMILES and models wil take a long time to process, be patient.</p>
+                        <p>You can also generate a CSV of the results by entering the compounds below, separated by commas or new lines. fragment contribution maps will not be generated for CSV. Large numbers of SMILES and models wil take a long time to process, be patient. The platform can only support predictions of less than 250 chemicals per run.</p>
                         <textarea class="form-control" id="multi-smiles" cols="30" rows="5" placeholder="Enter multiple SMILES strings as a comma or new line separated list and generate a .csv file."></textarea>
                         <input class="form-control" type="file" id="smiles-file">
                         <p>When uploading a SMILES file make sure smiles are newline seperated (ei a csv with one column and each row is a SMILES). Uploaded files will auto-populate the text area, wait to generate csv until you see them in the box.</p>
                         <div class="hidden loading-wrapper-csv" style="text-align: center;"><img src="https://i.stack.imgur.com/MnyxU.gif" alt="LOADING..."></div>
                         <button class="btn btn-default" title="Generate a CSV file containing molecular properties from multiple SMILES strings" type="submit">
-                            <i class="ni ni-cloud-download-95"></i>Generate CSV
+                            <i class="ni ni-cloud-download-95"></i>RUN MODEL FOR MULTIPLE CHEMICALS
                         </button>
                         <h5>Sorry, csv generation will not work on safari, use chrome, edge or firefox</h5>
                     </form>
