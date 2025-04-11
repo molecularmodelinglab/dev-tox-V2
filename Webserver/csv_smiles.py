@@ -10,10 +10,12 @@ def get_csv_from_smiles(smiles_list, options):
 
     options["make_prop_img"] = False  # do not need to create images for csv
 
-    headers = [key for key, val in options.items() if ((key not in ["calculate_ad", "make_prop_img"]) and val)]
-
-    if options["calculate_ad"]:
-        headers = headers + [_+"_AD" for _ in headers]
+    headers = []
+    for key, val in options.items():
+        if (key not in ["calculate_ad", "make_prop_img"]) and val:
+            headers.extend([key, key + " Probability", key + " Threshold"])
+            if options["calculate_ad"]:
+                headers.append(key + " in AD")
 
     string_file = StringIO()
     writer = csv.DictWriter(string_file, fieldnames=['SMILES', *headers])
@@ -31,14 +33,19 @@ def get_csv_from_smiles(smiles_list, options):
 
         data = main(smiles, **options)
 
-        for model_name, pred, pred_proba, ad, _ in data:
+        for model_name, pred, pred_proba, thresh, ad, _ in data:
             try:
-                pred_proba = float(pred_proba) / 100  # covert back to 0-1 float
-                row[model_name] = pred_proba if pred == 1 else 1 - pred_proba  # this is to make sure its proba for class 1
+                row[model_name] = pred
+                row[model_name+" Probability"] = pred_proba
+                row[model_name+" Threshold"] = thresh
+                if options["calculate_ad"]:
+                    row[model_name + " in AD"] = ad
             except ValueError:
                 row[model_name] = "No prediction"  # if pred_proba is string skip
-            if options["calculate_ad"]:
-                row[model_name + "_AD"] = ad
+                row[model_name + " Probability"] = "NA"
+                row[model_name + " Threshold"] = "NA"
+                if options["calculate_ad"]:
+                    row[model_name + " in AD"] = "NA"
 
         writer.writerow(row)
 
