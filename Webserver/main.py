@@ -50,7 +50,7 @@ def smiles_csv():
     if len(smiles) * num_models > 400:
         return abort(413)
 
-    csv = get_csv_from_smiles(request.json.get('smiles'), request.json.get('options'))
+    csv = get_csv_from_smiles(smiles, request.json.get('options'))
 
     return Response(
         csv,
