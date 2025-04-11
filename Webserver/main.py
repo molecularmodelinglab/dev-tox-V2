@@ -40,6 +40,9 @@ def smiles_csv():
     print("csv")
 
     smiles = request.json.get('smiles')
+
+    smiles = [smile for smile in smiles if smile != ""]  # remove empty strings
+
     options = request.json.get('options')
 
     num_models = sum([val for key, val in options.items() if key not in ["calculate_ad", "make_prop_img"]])
